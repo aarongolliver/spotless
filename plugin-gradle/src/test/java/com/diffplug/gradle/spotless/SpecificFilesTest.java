@@ -15,15 +15,23 @@
  */
 package com.diffplug.gradle.spotless;
 
+import java.io.File;
 import java.io.IOException;
 
+import org.junit.Assume;
 import org.junit.Test;
 
 public class SpecificFilesTest extends GradleIntegrationTest {
 	private String testFile(int number, boolean absolute) throws IOException {
 		String rel = "src/main/java/test" + number + ".java";
 		if (absolute) {
-			return rootFolder() + "/" + rel;
+			String rootFolder = rootFolder().toString();
+			String path = new File(rootFolder, rel).getAbsolutePath();
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				return path.replace("\\", "\\\\");
+			} else {
+				return path;
+			}
 		} else {
 			return rel;
 		}
@@ -77,6 +85,9 @@ public class SpecificFilesTest extends GradleIntegrationTest {
 
 	@Test
 	public void regexp() throws IOException {
+		// Skip on Windows
+		Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows"));
+
 		integration(".*/src/main/java/test(1|3).java", true, false, true);
 	}
 }
